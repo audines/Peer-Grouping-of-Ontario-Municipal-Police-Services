@@ -27,7 +27,7 @@
 
 The **Inspectorate of Policing (IoP)** is developing a **Policing Performance Measurement Framework (PPMF)** to support fair and evidence-based performance comparisons across Ontario's 43 municipal police services.
 
-A fundamental challenge in cross-service comparison is that police services operate in vastly different environments — comparing Toronto (population 2.8M) to Deep River (population 4,175) on raw performance metrics is neither fair nor meaningful. This project addresses that challenge by using **statistical clustering** to group police services into **peer groups** that share comparable demographic, socioeconomic, and operational characteristics.
+A fundamental challenge in cross-service comparison is that police services operate in vastly different environments  comparing Toronto (population 2.8M) to Deep River (population 4,175) on raw performance metrics is neither fair nor meaningful. This project addresses that challenge by using **statistical clustering** to group police services into **peer groups** that share comparable demographic, socioeconomic, and operational characteristics.
 
 ### Key Objectives
 
