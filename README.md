@@ -55,8 +55,6 @@ All data are publicly available from Statistics Canada. No proprietary or restri
 | Statistics Canada | `35-10-0177-01` | 2022 | Incident-based crime rate per 100,000 population |
 | Statistics Canada | `35-10-0077-01` | 2022 | Actual officers, authorised strength, civilian/other personnel |
 
-All 43 Ontario municipal police services listed in the PPMF assignment file are included.
-
 ---
 
 ## Variables
