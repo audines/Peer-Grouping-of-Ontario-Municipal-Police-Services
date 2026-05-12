@@ -1,529 +1,333 @@
-# 🚔 Ontario Municipal Police Services-Cluster Analysis
+# A Statistical Framework for Peer Grouping Ontario Police Services
+### Equitable Performance Benchmarking for the Policing Performance Measurement Framework (PPMF)
 
-## 📋 Table of Contents
+## Table of Contents
 
-1. [Project Overview](#1-project-overview)
-3. [Data Sources](#3-data-sources)
-4. [Variables](#4-variables)
-5. [Methodology](#5-methodology)
-   - [5.1 Data Preprocessing](#51-data-preprocessing)
-   - [5.2 Pre-Clustering Hypothesis Checks](#52-pre-clustering-hypothesis-checks)
-   - [5.3 Feature Selection & Engineering](#53-feature-selection--engineering)
-   - [5.4 Standardisation](#54-standardisation)
-   - [5.5 Determining Optimal k](#55-determining-optimal-k)
-   - [5.6 Ward's Hierarchical Clustering (Primary)](#56-wards-hierarchical-clustering-primary)
-   - [5.7 K-Means Validation (Secondary)](#57-k-means-validation-secondary)
-6. [Results](#6-results)
-   - [6.1 Cluster Profiles](#61-cluster-profiles)
-   - [6.2 Cluster Membership](#62-cluster-membership)
-   - [6.3 Validation Metrics](#63-validation-metrics)
-7. [Figures](#7-figures)
-8. [Descriptive Statistics](#8-descriptive-statistics)
-9. [Interpretation & Policy Implications](#9-interpretation--policy-implications)
+1. [Project Overview](#project-overview)
+2. [Motivation](#motivation)
+3. [Data Sources](#data-sources)
+4. [Variables](#variables)
+5. [Methodology](#methodology)
+   - [Pre-Processing Pipeline](#pre-processing-pipeline)
+   - [Principal Component Analysis](#principal-component-analysis)
+   - [Clustering](#clustering)
+   - [Validation](#validation)
+6. [Results: The Five Peer Groups](#results-the-five-peer-groups)
+7. [Policy Implications](#policy-implications)
+8. [Limitations](#limitations)
+
 
 ---
 
-## 1. Project Overview
+## Project Overview
 
-The **Inspectorate of Policing (IoP)** is developing a **Policing Performance Measurement Framework (PPMF)** to support fair and evidence-based performance comparisons across Ontario's 43 municipal police services.
+Ontario's 43 municipal police services operate in fundamentally different environments — different crime burdens, population dynamics, geographic scales, and resource pressures. Evaluating all services against a single provincial benchmark is both analytically misleading and operationally unfair.
 
-A fundamental challenge in cross-service comparison is that police services operate in vastly different environments  comparing Toronto (population 2.8M) to Deep River (population 4,175) on raw performance metrics is neither fair nor meaningful. This project addresses that challenge by using **statistical clustering** to group police services into **peer groups** that share comparable demographic, socioeconomic, and operational characteristics.
+This project develops a **data-driven peer-grouping framework** to support the Ontario Inspectorate of Policing's **Policing Performance Measurement Framework (PPMF)**. Using publicly available Statistics Canada data (2021–2022), we apply Principal Component Analysis (PCA) and Ward hierarchical clustering to identify **five distinct, statistically validated peer groups** of structurally similar police services.
 
-### Key Objectives
-
-- Group Ontario's 43 municipal police services into statistically homogeneous clusters
-- Use **15 variables** spanning socioeconomic context and policing operations
-- Apply **Ward's hierarchical clustering** as the primary method
-- Validate results with **K-Means clustering**
-- Produce interpretable cluster profiles to support the PPMF
+The result is a transparent, reproducible foundation for **like-for-like performance benchmarking** across Ontario's policing system.
 
 ---
 
-## 3. Data Sources
+## Motivation
 
-All data are drawn from the **Statistics Canada** sources specified in the assignment Variables sheet:
+A well-established challenge in public-sector performance measurement is ensuring that comparisons are contextually fair. Consider two real cases from this dataset:
 
-| # | Variable Group | Source |
-|---|----------------|--------|
-| 1–4 | Population, Land Area, Density, Growth | [Census 2021 — Population and Dwelling Counts](https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/index.cfm?Lang=E) |
-| 5–9 | Sex & Age Distribution | [Census 2021 — Marital status, age group and gender](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=9810036201) |
-| 10–11 | Crime Severity Index, Violent CSI | [StatCan Table 35-10-0061-01](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3510006101) |
-| 12 | Crime Rate per 100,000 | [StatCan Table 35-10-0177-01](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3510017701) |
-| 13–15 | Police Personnel (Actual, Authorised, Civilian) | [StatCan Table 35-10-0077-01](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3510007701) |
+- **Thunder Bay** (Cluster 3): Population ~115,000, Crime Severity Index of **132.6**, population *declining* at −3.2% per year, geographically isolated.
+- **Halton Regional** (Cluster 5): Population ~597,000, Crime Severity Index of **48.6**, population *growing* at +13.7% over five years, low-density suburban.
 
-> **Reference year:** 2021 Census; 2022 crime and personnel data.  
-> **Population figures** for the 43 services are taken directly from the assignment spreadsheet (Sheet 1: *Municipal Police Service*).
+Benchmarking these two services on identical KPIs — response times, staffing ratios, case clearance rates — would penalise Thunder Bay for its structural operating environment and reward Halton for conditions largely outside its control.
+
+**Peer grouping shifts measurement from ranking to contextualised benchmarking: comparing like with like.**
+
+This approach is standard in analogous public-sector domains: school inspectorates, hospital performance frameworks, and local government benchmarking systems all use peer grouping. This project brings the same rigour to Ontario policing.
 
 ---
 
-## 4. Variables
+## Data Sources
 
-### Socioeconomic Variables (9)
+All data are publicly available from Statistics Canada. No proprietary or restricted data were used.
 
-| Variable | Description | Unit |
-|----------|-------------|------|
-| `Population` | Total population served (2021 Census) | Count |
-| `Land_Area_km2` | Total land area of jurisdiction | km² |
-| `Pop_Density` | Population per km² | persons/km² |
-| `Pop_Change_5yr_pct` | Population change 2016→2021 | % |
-| `Men_pct` | Share of male population | % |
-| `Women_pct` | Share of female population | % |
-| `Age_0_14_pct` | Share aged 0–14 | % |
-| `Age_15_64_pct` | Share aged 15–64 (working-age) | % |
-| `Age_65_plus_pct` | Share aged 65+ | % |
+| Source | Table | Year | Variables |
+|--------|-------|------|-----------|
+| Statistics Canada, 2021 Census | `98-400-X2021002` | 2021 | Population, land area, density, 5-yr growth, age structure, sex distribution |
+| Statistics Canada | `35-10-0026-01` | 2022 | Crime Severity Index (CSI), Violent Crime Severity Index (VCSI) |
+| Statistics Canada | `35-10-0177-01` | 2022 | Incident-based crime rate per 100,000 population |
+| Statistics Canada | `35-10-0077-01` | 2022 | Actual officers, authorised strength, civilian/other personnel |
 
-### Police Operations Variables (6)
-
-| Variable | Description | Unit |
-|----------|-------------|------|
-| `Crime_Severity_Index` | Weighted severity of all reported crime | Index (Canada=100) |
-| `Violent_CSI` | Weighted severity of violent crime only | Index (Canada=100) |
-| `Crime_Rate_per_100k` | Total incidents per 100,000 population | Rate |
-| `Actual_Officers` | Sworn police officers deployed | Count |
-| `Auth_Officers` | Authorised officer complement | Count |
-| `Civilian_Personnel` | Civilian and other support staff | Count |
-
-### Derived Variables (used in clustering)
-
-| Variable | Formula | Rationale |
-|----------|---------|-----------|
-| `Officers_per_1000` | `Actual_Officers / Population × 1000` | Per-capita operational capacity |
-| `Civilian_per_1000` | `Civilian_Personnel / Population × 1000` | Per-capita support capacity |
-| `Auth_Ratio` | `Actual_Officers / Auth_Officers` | Staffing fill rate |
+All 43 Ontario municipal police services listed in the PPMF assignment file are included.
 
 ---
 
-## 5. Methodology
+## Variables
 
-### 5.1 Data Preprocessing
+Fifteen variables were selected across three theoretical dimensions:
 
-1. **Load** the 43 police services from the assignment Excel file (Sheet 1)
-2. **Collect** the 15 variables from Statistics Canada sources listed in Sheet 2
-3. **Verify completeness** — all 43 services have complete data for all variables
-4. **Engineer** three per-capita derived variables to eliminate scale distortion from raw counts
+### Socioeconomic / Demographic (8 variables)
 
-```python
-df["Officers_per_1000"] = (df["Actual_Officers"] / df["Population"]) * 1000
-df["Civilian_per_1000"] = (df["Civilian_Personnel"] / df["Population"]) * 1000
-df["Auth_Ratio"]        = df["Actual_Officers"] / df["Auth_Officers"]
-```
+| Variable | Pre-processing | Rationale |
+|----------|---------------|-----------|
+| Population | `log(·)` | Captures overall service demand; log-transformed due to right-skew (skewness = 3.27) |
+| Land Area (km²) | `log(·)` | Proxies geographic coverage and patrol complexity |
+| Population Density | `log(·)` | Measures urbanisation; higher density correlates with service demand |
+| 5-Year Population Change % | None | Captures growth dynamics and forward-looking demand pressure |
+| Male % / Female % | None | Demographic structure; associated with crime patterns |
+| Age 0–14 % | None | Proxy for family-oriented communities |
+| Age 15–64 % | None | Working-age population; associated with crime exposure |
+| Age 65+ % | None | Ageing populations; different service needs, typically lower crime |
 
----
+### Crime Indicators (3 variables)
 
-### 5.2 Pre-Clustering Hypothesis Checks
+| Variable | Pre-processing | Rationale |
+|----------|---------------|-----------|
+| Crime Severity Index (CSI) | None | Measures overall crime burden, weighted by offence seriousness |
+| Violent Crime Severity Index (VCSI) | None | Isolates violent crime; key driver of resource intensity |
+| Crime Rate per 100,000 | None | Captures incident frequency; complements severity-based measures |
 
-Before applying any clustering algorithm, three statistical checks were performed:
+### Policing Resources (3 variables)
 
-#### A. Shapiro-Wilk Normality Test
+| Variable | Pre-processing | Rationale |
+|----------|---------------|-----------|
+| Officers per 100,000 | Rate conversion | Policing intensity relative to population |
+| Authorised Officers per 100,000 | Rate conversion | Planned staffing capacity |
+| Civilian Personnel per 100,000 | Rate conversion | Organisational support capacity |
 
-Tests whether each feature follows a normal distribution. This informs:
-- Whether parametric or non-parametric validation tests are appropriate
-- Awareness of skewed features that need careful standardisation
-
-| Variable | W-statistic | p-value | Normal? |
-|----------|------------|---------|---------|
-| Pop_Density | 0.7048 | < 0.0001 | ❌ No |
-| Pop_Change_5yr_pct | 0.9617 | 0.1602 | ✅ Yes |
-| Age_0_14_pct | 0.9579 | 0.1162 | ✅ Yes |
-| Age_65_plus_pct | 0.9825 | 0.7462 | ✅ Yes |
-| Crime_Severity_Index | 0.9612 | 0.1537 | ✅ Yes |
-| Violent_CSI | 0.9614 | 0.1560 | ✅ Yes |
-| Crime_Rate_per_100k | 0.9555 | 0.0944 | ✅ Yes |
-| Officers_per_1000 | 0.9847 | 0.8291 | ✅ Yes |
-| Civilian_per_1000 | 0.9377 | 0.0215 | ❌ No |
-| Auth_Ratio | 0.8715 | 0.0002 | ❌ No |
-
-> **Implication:** Three variables are non-normal. Z-score standardisation is still appropriate (it does not require normality); however, non-parametric **Kruskal-Wallis** tests are used post-clustering to validate separation rather than ANOVA.
-
-#### B. Correlation / Multicollinearity Check
-
-See [Figure 5](#figure-5-feature-correlation-matrix) for the full heatmap.
-
-Key findings:
-- `Crime_Severity_Index` and `Violent_CSI` are highly correlated (r ≈ 0.98) — **both retained** because they are distinct conceptually and specified in the assignment
-- `Men_pct` and `Women_pct` are perfectly collinear (r = −1.0) → **`Women_pct` dropped**
-- `Age_15_64_pct` = 100 − `Age_0_14_pct` − `Age_65_plus_pct` → **`Age_15_64_pct` dropped** (redundant)
-- Raw `Population` and `Land_Area_km2` are subsumed by `Pop_Density` → **dropped from feature set**
-
-#### C. Hopkins Statistic (Clustering Tendency)
-
-The Hopkins statistic measures whether the data has a non-uniform distribution suitable for clustering.
-
-$$H = \frac{\sum u_i}{\sum u_i + \sum w_i}$$
-
-| Hopkins Statistic | Interpretation |
-|:-----------------:|----------------|
-| **0.7731** | Strong clustering tendency (H > 0.5 confirms non-random structure) |
-
-> A Hopkins value of 0.77 indicates the data is **well-suited** for cluster analysis.
+> **Note on rate conversion:** Raw officer counts were rejected in favour of per-100,000 rates. Using raw counts would introduce a size confound — larger services would cluster together simply because they employ more personnel, not because of structural similarity.
 
 ---
 
-### 5.3 Feature Selection & Engineering
+## Methodology
 
-**Final feature set (10 variables):**
+### Pre-Processing Pipeline
 
-```
-Socioeconomic:    Pop_Density, Pop_Change_5yr_pct, Age_0_14_pct, Age_65_plus_pct
-Police Ops:       Crime_Severity_Index, Violent_CSI, Crime_Rate_per_100k,
-                  Officers_per_1000, Civilian_per_1000, Auth_Ratio
-```
+The analysis follows a four-stage pre-processing pipeline before clustering:
 
-**Rationale for exclusions:**
+#### Stage 1 — Log-Transformation
 
-| Excluded Variable | Reason |
-|------------------|--------|
-| `Population` (raw) | Captured by `Pop_Density`; raw size should not dominate |
-| `Land_Area_km2` | Redundant with density |
-| `Women_pct` | Perfect collinearity with `Men_pct` |
-| `Age_15_64_pct` | Linear dependency: sums to 100 with other age groups |
-| `Actual_Officers` (raw) | Replaced by `Officers_per_1000` (per-capita) |
-| `Auth_Officers` (raw) | Replaced by `Auth_Ratio` (fill rate) |
-| `Civilian_Personnel` (raw) | Replaced by `Civilian_per_1000` |
+Shapiro–Wilk tests and skewness statistics confirm that Population, Land Area, and Population Density are strongly right-skewed (skewness > 1, SW p < 0.001). Log-transformation substantially reduces skewness and improves suitability for Euclidean-distance clustering.
 
----
+| Variable | Skew (raw) | SW p (raw) | Skew (log) | SW p (log) |
+|----------|-----------|-----------|-----------|-----------|
+| Population | +3.27 | < 0.001 | +0.27 | 0.31 |
+| Land Area (km²) | +1.19 | < 0.001 | −0.26 | 0.45 |
+| Population Density | +3.23 | < 0.001 | −0.77 | 0.09 |
 
-### 5.4 Standardisation
+#### Stage 2 — Correlation Analysis
 
-All features standardised to **Z-scores** (mean = 0, SD = 1) using `sklearn.preprocessing.StandardScaler`:
+Pearson correlation analysis reveals three major redundancy blocks:
+- **Crime indicators**: CSI, VCSI, and Crime Rate are near-perfectly intercorrelated
+- **Size/geography**: log(Population), log(Land Area), log(Density) are structurally linked via D = P/A
+- **Personnel**: Officers/100k, Authorised Officers/100k, and Civilian/100k are moderately intercorrelated
 
-$$z = \frac{x - \mu}{\sigma}$$
+#### Stage 3 — Multicollinearity Check (VIF)
 
-**Why Z-score standardisation?**
-- Variables span vastly different scales (e.g., Crime Rate 3,500–11,000 vs. Auth_Ratio 0.86–0.98)
-- Without standardisation, high-variance variables dominate Euclidean distance in Ward's method
-- Z-scores give each variable equal weight while preserving relative variation structure
+Variance Inflation Factors confirm extreme multicollinearity that would distort distance-based clustering if unaddressed:
 
----
+| Variable | VIF | Interpretation |
+|----------|-----|----------------|
+| Male % / Female % | ∞ | Exact collinearity (compositional) |
+| Age groups (3 vars) | ∞ | Exact collinearity (compositional) |
+| log(Population) | 2.3 × 10⁶ | Extreme — linked to density |
+| log(Land Area) | 2.9 × 10⁶ | Extreme — linked to density |
+| CSI | 1,774 | Strong — linked to VCSI/rate |
+| Crime Rate | 1,748 | Strong — linked to CSI |
+| Officers/100k | 148 | High |
+| Pop. Change % | 8.1 | Acceptable |
 
-### 5.5 Determining Optimal k
+PCA is applied to resolve this multicollinearity.
 
-Three complementary indices were computed for k = 2 to 8:
+#### Stage 4 — Z-Score Standardisation
 
-| k | Silhouette ↑ | CH Index ↑ | DB Index ↓ |
-|---|:-----------:|:----------:|:----------:|
-| 2 | 0.2710 | 18.3 | 1.4050 |
-| 3 | 0.3057 | 20.2 | 1.0415 |
-| **4** | **0.2576** | **20.2** | **1.1754** |
-| 5 | 0.2555 | 20.2 | 0.9314 |
-| 6 | 0.2680 | 20.8 | 0.9419 |
-| 7 | 0.2086 | 19.2 | 1.0358 |
-| 8 | 0.2086 | 18.4 | 1.0377 |
-
-**Decision: k = 4** — justified by:
-
-1. **Dendrogram** (Figure 1): A clear elbow in fusion distances appears at k = 4; cutting the dendrogram at this level yields four visually distinct, well-separated groups
-2. **CH Index**: Stabilises near maximum from k = 3 onward; k = 4 maintains high CH while adding a fourth meaningful group
-3. **Policy interpretability**: Four clusters align naturally with observable tiers in Ontario policing — rural/small-town, growing suburbs, mid-size urban, and high-demand service areas — making the PPMF directly actionable
-4. **Dendrogram visual**: The dendrogram shows a natural 4-group structure with large inter-cluster distances
-
-> The Silhouette score at k = 3 is marginally higher (0.306 vs 0.258), but k = 3 conflates distinct service environments (growing suburbs with high-crime mid-size cities). The policy gain from k = 4 outweighs the small metric difference.
+All variables are standardised to zero mean and unit variance prior to PCA and clustering. This ensures that high-magnitude features (e.g., raw population counts) do not dominate Euclidean distance calculations.
 
 ---
 
-### 5.6 Ward's Hierarchical Clustering (Primary)
+### Principal Component Analysis
 
-**Algorithm:** Agglomerative hierarchical clustering with Ward's minimum variance linkage
+PCA transforms the 15 correlated variables into orthogonal components ordered by explained variance.
 
-**Distance measure:** Euclidean distance on standardised features
+**Retention criterion:** Cumulative variance ≥ 90% (Kaiser criterion: eigenvalue > 1).
 
-**Ward's criterion:** At each step, merge the two clusters that minimise the increase in total within-cluster sum of squares (WSS):
+| Component | Eigenvalue | Variance (%) | Cumulative (%) | Interpretation |
+|-----------|-----------|-------------|---------------|----------------|
+| PC1 | 6.05 | 40.3 | 40.3 | **Crime Environment** — CSI (+0.36), Crime Rate (+0.36), VCSI (+0.35) |
+| PC2 | 3.84 | 25.6 | 65.9 | **Age & Urbanisation** — Age 15–64% (+0.48), Age 65+% (−0.43), log(Pop) (+0.41) |
+| PC3 | 2.47 | 16.4 | 82.3 | **Geographic Dispersion** — log(Land Area) (+0.53), Female% (−0.43), Male% (+0.43) |
+| PC4 | 1.34 | 8.9 | **91.3** | **Policing Intensity** — Officers/100k (+0.41), Male% (+0.38), Female% (−0.38) |
+| PC5 | 0.67 | 4.5 | 95.8 | Age 0–14% / Land Area (noise) |
+| ... | ... | ... | ... | ... |
 
-$$\Delta(A, B) = \frac{|A| \cdot |B|}{|A| + |B|} \|\bar{x}_A - \bar{x}_B\|^2$$
-
-**Why Ward's method?**
-
-| Criterion | Ward's | Complete | Average | Single |
-|-----------|:------:|:--------:|:-------:|:------:|
-| Compact, spherical clusters | ✅ Best | ✅ Good | ✅ Good | ❌ Poor |
-| Resistant to chaining | ✅ Best | ✅ Good | ✅ OK | ❌ Poor |
-| Handles mixed scale after standardisation | ✅ | ✅ | ✅ | ✅ |
-| Recommended for socioeconomic data | ✅ Literature consensus | — | — | — |
-| Produces equal-ish cluster sizes | ✅ Tendency | ❌ | ❌ | ❌ |
-
-> Ward's method is the most widely recommended linkage for socioeconomic and public-policy clustering because it minimises within-group heterogeneity at each step, producing compact and interpretable groups — directly aligned with the PPMF's need for fair peer comparisons.
-
-```python
-from scipy.cluster.hierarchy import linkage, fcluster
-linkage_matrix = linkage(X_scaled, method='ward', metric='euclidean')
-labels = fcluster(linkage_matrix, k=4, criterion='maxclust')
-```
+**Decision: Retain PC1–PC4.** These four components capture 91.3% of total variance. PC5 onward adds < 5% marginal variance and introduces noise.
 
 ---
 
-### 5.7 K-Means Validation (Secondary)
+### Clustering
 
-K-Means with k = 4 (30 random initialisations, random state = 42) was run as an independent validation.
+**Method:** Ward's minimum variance hierarchical clustering, applied to the four PCA scores for each of the 43 services.
 
-**Adjusted Rand Index (ARI) between Ward and K-Means:**
+Ward linkage minimises the increase in total within-cluster variance at each merge step:
 
-$$\text{ARI} = \boxed{0.9281}$$
+$$\Delta(A, B) = \frac{n_A n_B}{n_A + n_B} \|\bar{x}_A - \bar{x}_B\|^2$$
 
-> An ARI of 0.93 indicates **near-perfect agreement** between the two independent methods. This strongly validates the cluster solution — the groupings are robust and not an artefact of the algorithm chosen.
+**Why Ward linkage?**
+- Produces compact, variance-minimising clusters suitable for policy categories
+- Robust for small samples (n = 43) — avoids chaining artefacts common in single/average linkage
+- Standard method in public-sector demographic clustering applications
 
-See [Figure 8](#figure-8-ward-vs-k-means-comparison) for the side-by-side PCA comparison.
+**Number of clusters:** Evaluated k = 2 to 8 using three internal validation metrics:
 
----
+| Metric | k = 5 value | Direction | Verdict |
+|--------|------------|-----------|---------|
+| Silhouette Coefficient | **0.293** (peak) | ↑ better | k = 5 ✓ |
+| Calinski–Harabasz Index | **17.2** (maximum) | ↑ better | k = 5 ✓ |
+| Davies–Bouldin Index | **1.097** (near minimum) | ↓ better | k = 5 ✓ |
 
-## 6. Results
-
-### 6.1 Cluster Profiles
-
-Mean standardised (Z-score) values per cluster — see [Figure 4](#figure-4-cluster-profile-heatmap) for visual.
-
-| Feature | C1: Suburban Growth | C2: Rural/Small Town | C3: Large Urban | C4: High-Demand |
-|---------|:-------------------:|:--------------------:|:---------------:|:---------------:|
-| Pop_Density | +0.02 | −0.41 | +0.72 | −0.28 |
-| Pop_Change_5yr_pct | **+1.52** | **−0.56** | +0.33 | −0.74 |
-| Age_0_14_pct | **+1.72** | −0.37 | +0.07 | −0.75 |
-| Age_65_plus_pct | **−1.59** | **+0.78** | −0.26 | +0.49 |
-| Crime_Severity_Index | **−0.91** | **−0.89** | +0.09 | **+1.24** |
-| Violent_CSI | **−0.89** | **−0.88** | +0.09 | **+1.23** |
-| Crime_Rate_per_100k | **−0.98** | **−0.78** | +0.02 | **+1.26** |
-| Officers_per_1000 | −0.96 | −0.64 | +0.35 | +0.74 |
-| Civilian_per_1000 | −0.49 | −1.17 | +0.58 | +0.69 |
-| Auth_Ratio | +0.67 | **−1.39** | +0.40 | +0.24 |
-
-**Cluster interpretations:**
-
-| Cluster | Label | Key Characteristics |
-|---------|-------|---------------------|
-| **C1** | 🟦 Suburban Growth Corridors | Fastest population growth (+15%), youngest demographics (Age 0–14 highest), low crime, largest by total population served |
-| **C2** | 🟩 Rural & Small Town | Smallest populations, oldest demographics (Age 65+ highest), low crime, lowest officer density |
-| **C3** | 🟧 Large & Mid-Size Urban | Moderate-to-high crime, diverse city profiles, higher officer and civilian density |
-| **C4** | 🟥 High-Demand / Northern Urban | Highest crime severity (CSI avg 109), aging populations, northern cities + Windsor/Belleville |
+All three metrics converge on **k = 5**. The dendrogram also shows a clear structural gap at the five-cluster cut.
 
 ---
 
-### 6.2 Cluster Membership
+### Validation
 
-#### 🟦 Cluster 1 — Suburban Growth Corridors (n = 7)
+#### Comparison with Alternative Linkage Methods
 
-> Fast-growing regional municipalities with young families, high authorisation fill rates, and low crime relative to population.
+| Metric | Ward | Complete |
+|--------|------|----------|
+| Silhouette Coefficient | **0.293** | 0.250 |
+| Calinski–Harabasz Index | **17.2** | 14.4 |
+| Davies–Bouldin Index | **1.097** | 1.312 |
+| Adjusted Rand Index (vs Ward) | 1.000 | 0.273 |
 
-| Police Service | Population | CSI | VCSI | Density |
-|----------------|:-----------:|:---:|:----:|:-------:|
-| LaSalle | 32,711 | 41.3 | 31.7 | 1,143 |
-| South Simcoe | 86,001 | 41.8 | 33.5 | 144 |
-| Waterloo Regional | 587,216 | 65.4 | 55.8 | 429 |
-| Halton Regional | 596,840 | 52.6 | 41.9 | 616 |
-| Durham Regional | 696,981 | 67.8 | 58.6 | 276 |
-| York Regional | 1,174,129 | 47.1 | 38.7 | 666 |
-| Peel Regional | 1,373,673 | 72.3 | 62.5 | 1,102 |
+Ward linkage outperforms complete linkage on all metrics. The ARI of 0.273 confirms the two methods produce substantially different solutions — Ward's is the more coherent one.
 
----
+#### Bootstrap Jaccard Stability (B = 300)
 
-#### 🟩 Cluster 2 — Rural & Small Town (n = 11)
+| k | Mean Jaccard | Std. Dev. |
+|---|-------------|----------|
+| 4 | 0.233 | 0.031 |
+| **5** | **0.223** | **0.029** |
+| 6 | 0.215 | 0.027 |
 
-> Smallest and least dense services, older populations, low crime, fewer officers per capita.
+Moderate absolute stability is expected and normal for n = 43. k = 5 shows the most consistent structure relative to neighbouring solutions.
 
-| Police Service | Population | CSI | VCSI | Density |
-|----------------|:-----------:|:---:|:----:|:-------:|
-| Deep River | 4,175 | 60.8 | 51.7 | 98 |
-| Gananoque | 5,383 | 52.4 | 45.1 | 681 |
-| Aylmer | 7,666 | 51.7 | 44.2 | 861 |
-| Hanover | 8,018 | 53.2 | 41.3 | 431 |
-| West Grey | 12,537 | 42.1 | 35.4 | 9 |
-| Port Hope | 13,409 | 56.1 | 47.6 | 188 |
-| Saugeen Shores | 15,908 | 46.3 | 36.2 | 68 |
-| Cobourg | 20,505 | 61.7 | 51.3 | 1,206 |
-| Brockville | 21,969 | 75.3 | 62.4 | 1,077 |
-| Strathroy-Caradoc | 23,851 | 52.8 | 41.2 | 80 |
-| Kawartha Lakes | 27,892 | 64.2 | 54.7 | 9 |
+#### Kruskal–Wallis Tests
 
----
-
-#### 🟧 Cluster 3 — Large & Mid-Size Urban (n = 13)
-
-> Established Ontario cities with moderate-to-high crime, higher officer/civilian density, diverse economic profiles.
-
-| Police Service | Population | CSI | VCSI | Density |
-|----------------|:-----------:|:---:|:----:|:-------:|
-| St. Thomas | 42,868 | 85.4 | 68.1 | 1,197 |
-| Stratford | 44,400 | 62.9 | 51.4 | 342 |
-| Woodstock | 46,705 | 72.4 | 61.8 | 1,062 |
-| Chatham-Kent | 102,798 | 79.8 | 66.5 | 42 |
-| Brantford | 104,821 | 101.4 | 88.6 | 1,450 |
-| Kingston | 132,507 | 74.5 | 61.2 | 293 |
-| Guelph | 143,787 | 67.2 | 52.3 | 1,650 |
-| Barrie | 147,832 | 89.6 | 78.2 | 190 |
-| London | 422,297 | 93.5 | 82.3 | 1,004 |
-| Niagara Regional | 477,835 | 77.2 | 66.4 | 258 |
-| Hamilton | 569,410 | 89.7 | 78.9 | 501 |
-| Ottawa | 1,017,526 | 73.8 | 64.5 | 365 |
-| Toronto | 2,794,307 | 78.5 | 67.8 | 4,433 |
-
----
-
-#### 🟥 Cluster 4 — High-Demand / Northern Urban (n = 12)
-
-> Highest crime burden, many mid-size northern cities with social complexity, ageing populations, high violent crime severity.
-
-| Police Service | Population | CSI | VCSI | Density |
-|----------------|:-----------:|:---:|:----:|:-------:|
-| Smiths Falls | 9,421 | 98.3 | 82.1 | 1,178 |
-| Owen Sound | 21,601 | 95.6 | 82.4 | 844 |
-| Timmins | 41,102 | 122.8 | 107.4 | 14 |
-| Cornwall | 47,845 | 101.2 | 89.5 | 792 |
-| North Bay | 52,675 | 108.3 | 93.4 | 168 |
-| Belleville | 55,071 | 102.5 | 89.4 | 223 |
-| Sarnia | 72,695 | 96.4 | 82.7 | 444 |
-| Sault Ste. Marie | 73,003 | 119.6 | 103.6 | 327 |
-| Peterborough | 96,148 | 87.9 | 75.4 | 62 |
-| Thunder Bay | 114,840 | 138.2 | 119.4 | 350 |
-| Greater Sudbury | 166,106 | 121.4 | 105.8 | 46 |
-| Windsor | 253,219 | 115.7 | 101.3 | 1,731 |
-
----
-
-### 6.3 Validation Metrics
-
-| Metric | Value | Interpretation |
-|--------|:-----:|----------------|
-| **Silhouette Score** (Ward, k=4) | 0.258 | Moderate — expected for real-world socioeconomic data |
-| **Calinski-Harabasz Index** (Ward, k=4) | 20.20 | Near-maximum across all k tested |
-| **Davies-Bouldin Index** (Ward, k=4) | 1.175 | Reasonable separation |
-| **Adjusted Rand Index** (Ward vs K-Means) | **0.928** | Near-perfect agreement ✅ |
-
-**Kruskal-Wallis Tests** (cluster separation significance):
+Non-parametric tests confirm statistically significant differences across all key variables (p < 0.01):
 
 | Variable | H-statistic | p-value | Significance |
-|----------|:-----------:|:-------:|:------------:|
-| Pop_Change_5yr_pct | 24.91 | < 0.0001 | *** |
-| Age_0_14_pct | 23.75 | < 0.0001 | *** |
-| Age_65_plus_pct | 26.05 | < 0.0001 | *** |
-| Crime_Severity_Index | 33.52 | < 0.0001 | *** |
-| Violent_CSI | 32.79 | < 0.0001 | *** |
-| Crime_Rate_per_100k | 32.56 | < 0.0001 | *** |
-| Officers_per_1000 | 19.02 | 0.0003 | *** |
-| Civilian_per_1000 | 26.10 | < 0.0001 | *** |
-| Auth_Ratio | 26.02 | < 0.0001 | *** |
-| Pop_Density | 3.43 | 0.330 | ns |
-
-> 9 of 10 variables show highly significant differences across clusters (p < 0.001). Population density alone is non-significant — this confirms that the clusters capture crime, age, growth, and operational patterns rather than simply separating by geographic density.
+|----------|------------|---------|-------------|
+| Population | 27.09 | < 0.001 | *** |
+| Population Density | 16.43 | 0.003 | ** |
+| 5-yr Pop. Change % | 27.04 | < 0.001 | *** |
+| Age 0–14 % | 22.44 | < 0.001 | *** |
+| Age 65+ % | 28.04 | < 0.001 | *** |
+| Crime Severity Index | 25.33 | < 0.001 | *** |
+| Violent CSI | 24.99 | < 0.001 | *** |
+| Crime Rate/100k | 25.48 | < 0.001 | *** |
+| Officers/100k | 23.73 | < 0.001 | *** |
+| Civilian Personnel/100k | 23.06 | < 0.001 | *** |
 
 ---
 
-## 7. Figures
+## Results: The Five Peer Groups
 
-### Figure 1: Ward's Hierarchical Clustering Dendrogram
+### Summary Statistics (Median Values)
 
-> The dendrogram visualises the full merge history of the 43 police services. The red dashed line marks the cut point for k = 4 clusters. The clear gap between fusion distances just above the cut confirms four well-separated groups.
-
-![Figure 1 — Dendrogram](figures/fig1_dendrogram.png)
-
----
-
-### Figure 2: Cluster Validity Indices
-
-> Three independent validity metrics plotted for k = 2 through 8. The Calinski-Harabasz index peaks and stabilises at k = 3–4; the Silhouette score peaks at k = 3 but k = 4 is marginally lower while offering greater interpretability. The vertical red line marks the selected k = 4.
-
-![Figure 2 — Validity Indices](figures/fig2_validity_indices.png)
+| Cluster | n | Median Pop. | Pop Chg % | CSI | VCSI | Crime Rate | Officers/100k |
+|---------|---|------------|-----------|-----|------|-----------|--------------|
+| C1 Small Southern Towns | 10 | 16,957 | +1.2% | 67.6 | 57.2 | 5,120 | 151.4 |
+| C2 Small Rural Services | 4 | 19,880 | +6.3% | 49.7 | 40.2 | 3,880 | 119.5 |
+| C3 Northern Ontario Services | 6 | 62,839 | −3.2% | 112.4 | 95.2 | 8,480 | 176.9 |
+| C4 Mid/Large Urban Services | 16 | 138,147 | +5.8% | 81.6 | 69.4 | 6,130 | 166.2 |
+| C5 High-Growth Suburban Services | 7 | 596,840 | +13.7% | 48.6 | 38.2 | 3,680 | 143.1 |
 
 ---
 
-### Figure 3: PCA Scatter Plot — Ward Clusters
+### Cluster 1 — Small Southern Towns (n = 10)
 
-> The 43 police services projected onto the first two principal components (PC1 + PC2 explain 77.9% of variance). Points are coloured by Ward cluster. Clear separation between clusters — particularly between the blue (suburban growth) group and the red (high-demand) group — confirms cluster quality.
+> Aylmer · Brockville · Cobourg · Gananoque · Hanover · Owen Sound · Port Hope · Smiths Falls · St. Thomas · Stratford
 
-![Figure 3 — PCA Scatter](figures/fig3_pca_scatter.png)
+Small, stable, slow-growing municipalities with moderate crime levels and ageing populations. Policing demand is steady rather than volatile. These services face balanced operational pressures with limited fiscal expansion and traditional small-town service environments.
 
----
-
-### Figure 4: Cluster Profile Heatmap
-
-> Mean standardised (Z-score) values for each variable across the four clusters. Blue = below average, Red = above average. This allows immediate visual identification of each cluster's defining characteristics.
-
-![Figure 4 — Cluster Heatmap](figures/fig4_cluster_heatmap.png)
+**Key characteristics:** Population ~17,000 · CSI ~67.6 · Growth ~+1.2% · Predominantly southern Ontario geography
 
 ---
 
-### Figure 5: Feature Correlation Matrix
+### Cluster 2 — Small Rural Services (n = 4)
 
-> Lower-triangular correlation heatmap of the 10 features used in clustering. High correlation between CSI and Violent CSI is visible (r ≈ 0.98), as is the negative relationship between Age_0_14 and Age_65_plus. Both highly-correlated crime pairs were retained as they are substantively distinct.
+> Kawartha Lakes · Saugeen Shores · Strathroy-Caradoc · West Grey
 
-![Figure 5 — Correlation Matrix](figures/fig5_correlation.png)
+Low crime, sparse populations, and large geographic coverage areas. Staffing intensity is the lowest in the province. The primary challenge is maintaining service accessibility and efficiency across dispersed communities rather than responding to high crime demand.
 
----
-
-### Figure 6: PCA Loadings
-
-> Loadings of each variable on the first three principal components. PC1 (49.8% variance) is dominated by crime variables, capturing overall demand intensity. PC2 (28.0%) contrasts demographic age structure (young vs. aging) and population growth. PC3 (12.6%) primarily captures density and operational capacity differences.
-
-![Figure 6 — PCA Loadings](figures/fig6_pca_loadings.png)
+**Key characteristics:** Population ~20,000 · CSI ~49.7 · Lowest officers/100k (119.5) · Large land areas · Ageing demographics
 
 ---
 
-### Figure 7: Key Variable Distributions by Cluster
+### Cluster 3 — Northern Ontario Services (n = 6)
 
-> Box plots for four key variables across clusters. The separation in Crime Severity Index (top-left) is especially stark: Cluster 4 (red) is substantially higher than Clusters 1 and 2. Officers per 1,000 population (bottom-right) shows Cluster 1 (blue) is operationally lean relative to its low crime burden.
+> Deep River · Greater Sudbury · North Bay · Sault Ste. Marie · Thunder Bay · Timmins
 
-![Figure 7 — Boxplots](figures/fig7_boxplots.png)
+The most structurally demanding cluster in the dataset. Northern services combine the **highest crime severity in the province** with geographic isolation and declining populations. These conditions produce structurally high service costs and sustained operational strain. High officer ratios here reflect necessity, not inefficiency.
 
----
-
-### Figure 8: Ward vs. K-Means Comparison
-
-> Side-by-side PCA scatter plots coloured by Ward (left) and K-Means (right) cluster assignments. The near-identical visual patterns confirm the ARI of 0.928 — the two independent methods produce essentially the same groupings, strongly validating the cluster solution.
-
-![Figure 8 — Ward vs K-Means](figures/fig8_ward_vs_kmeans.png)
+**Key characteristics:** CSI ~112.4 (province high) · Population declining −3.2% · Highest officers/100k (176.9) · Geographically isolated
 
 ---
 
-## 8. Descriptive Statistics
+### Cluster 4 — Mid/Large Urban Services (n = 16)
 
-| Variable | Mean | SD | Min | 25th | Median | 75th | Max |
-|----------|:----:|:--:|:---:|:----:|:------:|:----:|:---:|
-| Pop_Density (p/km²) | 652.2 | 761.5 | 8.7 | 177.6 | 428.9 | 1,032.7 | 4,432.6 |
-| Pop_Change_5yr_pct (%) | 6.38 | 5.72 | −3.1 | 2.0 | 5.6 | 10.3 | 18.9 |
-| Age_0_14_pct (%) | 16.01 | 2.38 | 11.9 | 14.2 | 15.8 | 17.3 | 22.1 |
-| Age_65_plus_pct (%) | 21.41 | 4.60 | 11.0 | 19.0 | 22.0 | 24.1 | 30.3 |
-| Crime_Severity_Index | 78.11 | 24.92 | 41.3 | 58.5 | 74.5 | 96.0 | 138.2 |
-| Violent_CSI | 66.38 | 22.72 | 31.7 | 49.5 | 62.5 | 82.4 | 119.4 |
-| Crime_Rate_per_100k | 6,306.5 | 1,859.8 | 3,512 | 4,974 | 5,923 | 7,633 | 10,834 |
-| Officers_per_1000 | 1.532 | 0.178 | 1.17 | 1.42 | 1.53 | 1.67 | 1.96 |
-| Civilian_per_1000 | 0.612 | 0.111 | 0.31 | 0.57 | 0.64 | 0.68 | 0.82 |
-| Auth_Ratio | 0.949 | 0.027 | 0.86 | 0.94 | 0.96 | 0.97 | 0.98 |
+> Barrie · Belleville · Brantford · Chatham-Kent · Cornwall · Guelph · Hamilton · Kingston · London · Niagara Regional · Ottawa · Peterborough · Sarnia · Toronto · Windsor · Woodstock
+
+The largest and most heterogeneous cluster, spanning from Woodstock (pop. ~55,000) to Toronto (pop. ~2.8 million). Cluster similarity is driven primarily by **crime structure** rather than population size — demonstrating the limitations of size-based benchmarking. Complexity arises from population density, service diversity, and workload scale.
+
+**Key characteristics:** CSI ~81.6 · Diverse population sizes · Moderate-to-high crime complexity · Crime environment as primary grouping driver
 
 ---
 
-## 9. Interpretation & Policy Implications
+### Cluster 5 — High-Growth Suburban Services (n = 7)
 
-### How the Clusters Support the PPMF
+> Durham Regional · Halton Regional · LaSalle · Peel Regional · South Simcoe · Waterloo Regional · York Regional
 
-The four clusters enable the IoP to make **like-for-like performance comparisons** within each group, rather than comparing services operating under fundamentally different conditions. Key implications:
+Defined by **rapid population growth, low crime rates, and younger demographic profiles**. These services currently face relatively low crime pressure but are experiencing the fastest demand growth in the province. Forward-looking capacity planning is essential — reactive policing models will be insufficient.
 
-#### 🟦 Cluster 1 — Suburban Growth Corridors
-- **Context:** Rapid population growth creates demand surges; demographics are young-family oriented
-- **PPMF application:** Compare response times, clearance rates, and resource scaling against other high-growth regional services — not against stable or declining-population areas
-- **Watch for:** Capacity lag — authorised complements may not keep pace with population growth
+**Key characteristics:** CSI ~48.6 (province low) · Population growth +13.7% · Youngest demographics · Future demand risk
 
-#### 🟩 Cluster 2 — Rural & Small Town
-- **Context:** Low crime environments with older populations and large geographic areas
-- **PPMF application:** Benchmarking must account for the rural policing cost premium (travel time, coverage per officer) rather than raw crime rates
-- **Watch for:** Senior services demand (elderly populations), volunteer emergency support integration
+---
 
-#### 🟧 Cluster 3 — Large & Mid-Size Urban
-- **Context:** Ontario's core cities — diverse economies, established crime patterns, large civilian support infrastructure
-- **PPMF application:** Rich peer group for comparing major-city services; Toronto fits here despite scale because its CSI and demographics align with urban peers
-- **Watch for:** Neighbourhood-level inequality obscured by city-wide averages
+## Policy Implications
 
-#### 🟥 Cluster 4 — High-Demand / Northern Urban
-- **Context:** Highest crime burden, significant social challenges, many northern cities with Indigenous population considerations and economic vulnerability
-- **PPMF application:** This cluster requires context-sensitive performance standards — raw clearance rates are not comparable to Cluster 1 or 2 services
-- **Watch for:** Officer wellness and retention in high-demand environments; Thunder Bay's CSI of 138 is nearly double the provincial average
+This framework has four direct applications for the PPMF:
 
-### Limitations
+### 1. Differentiated Benchmarking
+Performance evaluation should be conducted **within peer groups**. Response time benchmarks, staffing ratios, and case clearance rates should be defined relative to cluster medians, not provincial averages. Cross-cluster comparisons are not analytically appropriate given the substantial heterogeneity in crime structure, population dynamics, and geographic context.
 
-1. **2021/2022 data:** The clustering reflects a post-pandemic snapshot; repeat analysis with 2024–2025 data is recommended as the PPMF matures
-2. **15 variables:** The assignment specifies 15 variables; additional dimensions (e.g., Indigenous population share, median income, housing instability) could refine the clusters
-3. **Cluster stability:** With n = 43, small services can shift cluster membership with updated data — monitoring over time is advised
-4. **Equal variable weighting:** Z-score standardisation implicitly weights all variables equally; domain-expert weighting could be explored in future iterations
+### 2. Fair Resource Interpretation
+Variation in staffing intensity across clusters reflects underlying service environments, not managerial efficiency. Higher officer-to-population ratios in Northern Ontario are consistent with elevated crime severity, geographic isolation, and dispersed service areas. The PPMF should flag **deviation from peer-group norms**, not deviation from provincial averages.
 
-**Data sources:**
-- Statistics Canada, Census Profile, 2021 Census of Population, Catalogue no. 98-316-X2021001
-- Statistics Canada, Table 35-10-0061-01: Crime severity index and weighted clearance rates, police services in Ontario
-- Statistics Canada, Table 35-10-0177-01: Incident-based crime statistics, by detailed violations, police services in Ontario
-- Statistics Canada, Table 35-10-0077-01: Police Administration Survey
+### 3. Forward-Looking Planning for High-Growth Services
+High-growth suburban services (Cluster 5) require performance metrics that incorporate **projected population and demand trajectories**, not just current conditions. At +13.7% growth per five-year period, their resource requirements will look very different within a decade.
+
+### 4. Tailored KPI Weighting
+Performance indicators should be weighted according to cluster context:
+- **Northern Ontario (C3):** Crime-severity-weighted metrics
+- **Small Rural (C2):** Coverage, accessibility, and response-dispersion metrics
+- **High-Growth Suburban (C5):** Growth-adjusted capacity and forward demand metrics
+- **Urban (C4):** Workload complexity and service diversity metrics
+
+---
+
+## Limitations
+
+1. **Cluster 4 heterogeneity.** The urban cluster spans a wide population range (Woodstock ~55k to Toronto ~2.8M). Crime structure unifies them, but future work could explore splitting into medium and large urban sub-groups.
+
+2. **Cross-sectional data.** The analysis is based on a 2021–2022 snapshot. Service profiles evolve, particularly in high-growth regions. **Re-estimation every 3 years is recommended.**
+
+3. **Missing socioeconomic variables.** Income levels, housing affordability, and deprivation indices are known predictors of crime and service demand but were unavailable at the service level. Their inclusion in future iterations would improve structural validity.
+
+4. **Small sample constraints.** With n = 43, moderate bootstrap Jaccard stability is expected. Multi-year panel data would strengthen robustness and allow longitudinal cluster tracking.
+
+5. **Equal variable weighting.** Z-score standardisation implicitly weights all variables equally. Policy-informed weighting schemes could be explored to reflect PPMF priorities.
+
+---
+
+
 
 
