@@ -135,7 +135,7 @@ Strong redundancy blocks are visible across crime, size/geography, and personnel
 
 PCA transforms the 15 correlated variables into orthogonal components. The first four components explain **91.3% of total variance**, satisfying the ≥ 90% retention criterion.
 
-![PCA Scree Plot](https://github.com/audines/fig2_scree_plot.png)
+![PCA Scree Plot](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig2_scree_plot.png)
 *Fig 2 — Scree plot (left) and cumulative explained variance (right). PC1–PC4 explain 91.3% of variance; the elbow is clear at PC4.*
 
 | Component | Variance (%) | Cumulative (%) | Interpretation |
@@ -145,7 +145,7 @@ PCA transforms the 15 correlated variables into orthogonal components. The first
 | PC3 | 16.4 | 82.3 | **Geographic Dispersion** — log(Land Area) (+0.53) |
 | PC4 | 8.9 | **91.3** | **Policing Intensity** — Officers/100k (+0.41) |
 
-![PCA Biplot](https://github.com/audines/fig6_pca_biplot.png)
+![PCA Biplot](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig3_validation_metrics.png)
 *Fig 3 — PCA biplot (PC1 vs PC2). Services are coloured by cluster; loading arrows show the direction of key variable influence. Northern Ontario services (green) score high on PC1 (crime); High-Growth Suburban (red) score high on PC2 (growth/urbanisation).*
 
 ---
@@ -156,12 +156,12 @@ PCA transforms the 15 correlated variables into orthogonal components. The first
 
 **Number of clusters:** All three internal validation metrics converge on **k = 5**:
 
-![Cluster Validation Metrics](outputs/figures/fig3_validation_metrics.png)
+![Cluster Validation Metrics](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig4_dendrogram.png)
 *Fig 4 — Internal validation metrics (Silhouette, Calinski–Harabasz, Davies–Bouldin) across k = 2–8. All three peak or bottom at k = 5.*
 
 The dendrogram confirms the five-cluster structure with a clear structural gap at the k = 5 cut:
 
-![Ward Linkage Dendrogram](outputs/figures/fig4_dendrogram.png)
+![Ward Linkage Dendrogram](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig5_silhouette_plot.png)
 *Fig 5 — Ward linkage dendrogram on 4 PCA scores. The red dashed line marks the k = 5 cut. Services are colour-coded by cluster. The large gap above the cut confirms five groups is the natural partition.*
 
 ---
@@ -170,7 +170,7 @@ The dendrogram confirms the five-cluster structure with a clear structural gap a
 
 #### Silhouette Analysis
 
-![Silhouette Plot](outputs/figures/fig5_silhouette_plot.png)
+![Silhouette Plot](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig6_pca_biplot.png)
 *Fig 6 — Silhouette plot for Ward k = 5. C5 (High-Growth Suburban) and C2 (Small Rural) show the tightest internal cohesion. Overall mean silhouette = 0.293.*
 
 #### Comparison with Alternative Linkage Methods
@@ -196,7 +196,7 @@ Ward linkage outperforms complete linkage across all metrics.
 
 All key variables show statistically significant differences across clusters (p < 0.01):
 
-![Kruskal-Wallis Results](outputs/figures/fig9_kruskal_wallis.png)
+![Kruskal-Wallis Results](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig9_kruskal_wallis.png)
 *Fig 7 — Kruskal–Wallis H-statistics for key variables. All exceed the p < 0.001 critical threshold (dotted line), confirming the clustering reflects genuine structural differences.*
 
 ---
@@ -217,12 +217,12 @@ All key variables show statistically significant differences across clusters (p 
 
 The radar chart below shows each cluster's normalised median profile across six key dimensions:
 
-![Radar Chart](outputs/figures/fig7_radar_chart.png)
+![Radar Chart](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig7_radar_chart.png)
 *Fig 8 — Radar chart of normalised median cluster profiles (scaled 0–1 across clusters). C3 Northern Ontario dominates the crime axes; C5 High-Growth Suburban dominates the population growth axis; C2 Small Rural leads on Age 65+%.*
 
 The heatmap shows each cluster's z-score profile versus the all-service mean:
 
-![Cluster Heatmap](outputs/figures/fig8_cluster_heatmap.png)
+![Cluster Heatmap](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig8_cluster_heatmap.png)
 *Fig 9 — Cluster profile heatmap. Green = above all-service average; red = below. Annotations show raw median values. C3 (Northern Ontario) is strongly green on crime indicators; C5 (Suburban) is strongly red on crime and green on growth.*
 
 ---
