@@ -111,8 +111,7 @@ Shapiro–Wilk tests confirm strong right-skew in three variables before transfo
 **Stage 2 — Correlation Analysis**
 
 Strong redundancy blocks are visible across crime, size/geography, and personnel variables.
-
-![Pearson Correlation Matrix](outputs/figures/fig1_correlation_matrix.png)
+![Pearson Correlation Matrix](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig1_correlation_matrix.png)
 *Fig 1 — Pearson correlation matrix of the 15 analysis variables after log-transformation and rate conversion. Strong blocks of correlation are visible among crime, size, and personnel variables.*
 
 **Stage 3 — Multicollinearity Check (VIF)**
@@ -136,7 +135,7 @@ Strong redundancy blocks are visible across crime, size/geography, and personnel
 
 PCA transforms the 15 correlated variables into orthogonal components. The first four components explain **91.3% of total variance**, satisfying the ≥ 90% retention criterion.
 
-![PCA Scree Plot](outputs/figures/fig2_scree_plot.png)
+![PCA Scree Plot](https://github.com/audines/fig2_scree_plot.png)
 *Fig 2 — Scree plot (left) and cumulative explained variance (right). PC1–PC4 explain 91.3% of variance; the elbow is clear at PC4.*
 
 | Component | Variance (%) | Cumulative (%) | Interpretation |
@@ -146,7 +145,7 @@ PCA transforms the 15 correlated variables into orthogonal components. The first
 | PC3 | 16.4 | 82.3 | **Geographic Dispersion** — log(Land Area) (+0.53) |
 | PC4 | 8.9 | **91.3** | **Policing Intensity** — Officers/100k (+0.41) |
 
-![PCA Biplot](outputs/figures/fig6_pca_biplot.png)
+![PCA Biplot](https://github.com/audines/fig6_pca_biplot.png)
 *Fig 3 — PCA biplot (PC1 vs PC2). Services are coloured by cluster; loading arrows show the direction of key variable influence. Northern Ontario services (green) score high on PC1 (crime); High-Growth Suburban (red) score high on PC2 (growth/urbanisation).*
 
 ---
