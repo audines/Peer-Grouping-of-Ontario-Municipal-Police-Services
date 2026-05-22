@@ -1,5 +1,4 @@
 # A Statistical Framework for Peer Grouping Ontario Police Services
-### Equitable Performance Benchmarking for the Policing Performance Measurement Framework (PPMF)
 
 ## Table of Contents
 
@@ -19,7 +18,7 @@
 
 ## Project Overview
 
-Ontario's 43 municipal police services operate in fundamentally different environments — different crime burdens, population dynamics, geographic scales, and resource pressures. Evaluating all services against a single provincial benchmark is both analytically misleading and operationally unfair.
+Ontario's 43 municipal police services operate in fundamentally different environments: different crime burdens, population dynamics, geographic scales, and resource pressures. Evaluating all services against a single provincial benchmark is both analytically misleading and operationally unfair.
 
 This project develops a **data-driven peer-grouping framework** to support the Ontario Inspectorate of Policing's **Policing Performance Measurement Framework (PPMF)**. Using publicly available Statistics Canada data (2021–2022), we apply Principal Component Analysis (PCA) and Ward hierarchical clustering to identify **five distinct, statistically validated peer groups** of structurally similar police services.
 
@@ -157,12 +156,12 @@ PCA transforms the 15 correlated variables into orthogonal components. The first
 **Number of clusters:** All three internal validation metrics converge on **k = 5**:
 
 ![Cluster Validation Metrics](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig4_dendrogram.png)
-*Fig 4 — Internal validation metrics (Silhouette, Calinski–Harabasz, Davies–Bouldin) across k = 2–8. All three peak or bottom at k = 5.*
+*Fig 4 - Internal validation metrics (Silhouette, Calinski–Harabasz, Davies–Bouldin) across k = 2–8. All three peak or bottom at k = 5.*
 
 The dendrogram confirms the five-cluster structure with a clear structural gap at the k = 5 cut:
 
 ![Ward Linkage Dendrogram](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig5_silhouette_plot.png)
-*Fig 5 — Ward linkage dendrogram on 4 PCA scores. The red dashed line marks the k = 5 cut. Services are colour-coded by cluster. The large gap above the cut confirms five groups is the natural partition.*
+*Fig 5 - Ward linkage dendrogram on 4 PCA scores. The red dashed line marks the k = 5 cut. Services are colour-coded by cluster. The large gap above the cut confirms five groups is the natural partition.*
 
 ---
 
@@ -218,7 +217,7 @@ All key variables show statistically significant differences across clusters (p 
 The radar chart below shows each cluster's normalised median profile across six key dimensions:
 
 ![Radar Chart](https://github.com/audines/Peer-Grouping-of-Ontario-Municipal-Police-Services/blob/main/fig7_radar_chart.png)
-*Fig 8 — Radar chart of normalised median cluster profiles (scaled 0–1 across clusters). C3 Northern Ontario dominates the crime axes; C5 High-Growth Suburban dominates the population growth axis; C2 Small Rural leads on Age 65+%.*
+*Fig 8 - Radar chart of normalised median cluster profiles (scaled 0-1 across clusters). C3 Northern Ontario dominates the crime axes; C5 High-Growth Suburban dominates the population growth axis; C2 Small Rural leads on Age 65+%.*
 
 The heatmap shows each cluster's z-score profile versus the all-service mean:
 
@@ -227,7 +226,7 @@ The heatmap shows each cluster's z-score profile versus the all-service mean:
 
 ---
 
-### Cluster 1 — Small Southern Towns (n = 10)
+### Cluster 1- Small Southern Towns (n = 10)
 
 > Aylmer · Brockville · Cobourg · Gananoque · Hanover · Owen Sound · Port Hope · Smiths Falls · St. Thomas · Stratford
 
@@ -235,7 +234,7 @@ Small, stable, slow-growing municipalities with moderate crime levels and ageing
 
 ---
 
-### Cluster 2 — Small Rural Services (n = 4)
+### Cluster 2- Small Rural Services (n = 4)
 
 > Kawartha Lakes · Saugeen Shores · Strathroy-Caradoc · West Grey
 
@@ -269,18 +268,18 @@ Lowest crime (CSI median 48.6), fastest population growth (+13.7%). Demand is ri
 
 ## Policy Implications
 
-1. **Differentiated Benchmarks** — Set KPI targets within peer groups, not against provincial averages.
-2. **Fair Resource Interpretation** — Northern Ontario's high officer ratios reflect structural necessity; flag deviation from peer norms, not provincial norms.
-3. **Forward-Looking Planning** — Suburban services need growth-adjusted capacity metrics, not just current-state measurement.
-4. **Tailored KPI Weighting** — Weight performance indicators by cluster context (crime-severity for North; coverage for Rural; growth-capacity for Suburban).
+1. **Differentiated Benchmarks** - Set KPI targets within peer groups, not against provincial averages.
+2. **Fair Resource Interpretation** -Northern Ontario's high officer ratios reflect structural necessity; flag deviation from peer norms, not provincial norms.
+3. **Forward-Looking Planning** - Suburban services need growth-adjusted capacity metrics, not just current-state measurement.
+4. **Tailored KPI Weighting** - Weight performance indicators by cluster context (crime-severity for North; coverage for Rural; growth-capacity for Suburban).
 
 ---
 
 ## Limitations
 
-1. **Cluster 4 heterogeneity** — Spans Woodstock to Toronto; medium/large urban sub-groups could be explored.
-2. **Cross-sectional data** — 2021–22 snapshot; re-estimation every 3 years recommended.
-3. **Missing socioeconomic variables** — Income, housing affordability, and deprivation indices not available at service level; inclusion would improve structural validity.
-4. **Small sample (n = 43)** — Moderate bootstrap stability is expected; multi-year panel data would strengthen robustness.
-5. **Equal variable weighting** — Standardisation treats all variables equally; policy-informed weighting could be explored.
+1. **Cluster 4 heterogeneity** - Spans Woodstock to Toronto; medium/large urban sub-groups could be explored.
+2. **Cross-sectional data** - 2021–22 snapshot; re-estimation every 3 years recommended.
+3. **Missing socioeconomic variables** - Income, housing affordability, and deprivation indices not available at service level; inclusion would improve structural validity.
+4. **Small sample (n = 43)** - Moderate bootstrap stability is expected; multi-year panel data would strengthen robustness.
+5. **Equal variable weighting** - Standardisation treats all variables equally; policy-informed weighting could be explored.
 
