@@ -226,7 +226,7 @@ The heatmap shows each cluster's z-score profile versus the all-service mean:
 
 ---
 
-### Cluster 1- Small Southern Towns (n = 10)
+### Cluster 1: Small Southern Towns (n = 10)
 
 > Aylmer · Brockville · Cobourg · Gananoque · Hanover · Owen Sound · Port Hope · Smiths Falls · St. Thomas · Stratford
 
@@ -234,7 +234,7 @@ Small, stable, slow-growing municipalities with moderate crime levels and ageing
 
 ---
 
-### Cluster 2- Small Rural Services (n = 4)
+### Cluster 2: Small Rural Services (n = 4)
 
 > Kawartha Lakes · Saugeen Shores · Strathroy-Caradoc · West Grey
 
@@ -242,7 +242,7 @@ Low crime, sparse populations, large geographic coverage. Lowest staffing intens
 
 ---
 
-### Cluster 3 — Northern Ontario Services (n = 6)
+### Cluster 3: Northern Ontario Services (n = 6)
 
 > Deep River · Greater Sudbury · North Bay · Sault Ste. Marie · Thunder Bay · Timmins
 
@@ -250,7 +250,7 @@ The most structurally demanding cluster. Highest crime severity (CSI median 112.
 
 ---
 
-### Cluster 4 — Mid/Large Urban Services (n = 16)
+### Cluster 4: Mid/Large Urban Services (n = 16)
 
 > Barrie · Belleville · Brantford · Chatham-Kent · Cornwall · Guelph · Hamilton · Kingston · London · Niagara Regional · Ottawa · Peterborough · Sarnia · Toronto · Windsor · Woodstock
 
@@ -258,7 +258,7 @@ Spans Woodstock to Toronto. Cluster unity is driven by **crime structure**, not 
 
 ---
 
-### Cluster 5 — High-Growth Suburban Services (n = 7)
+### Cluster 5: High-Growth Suburban Services (n = 7)
 
 > Durham Regional · Halton Regional · LaSalle · Peel Regional · South Simcoe · Waterloo Regional · York Regional
 
